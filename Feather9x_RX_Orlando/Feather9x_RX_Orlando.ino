@@ -71,12 +71,6 @@ void loop() {
   if (millis() - lastCheck >= checkIntervals) {  // an indicator that it is working.
     lastCheck = millis();
     Serial.println("Listening..."); 
-    
-    //blink
-    digitalWrite(LED_BUILTIN, HIGH);  
-    delay(1000);                      
-    digitalWrite(LED_BUILTIN, LOW);   
-    delay(1000);  
   }
 
 
@@ -99,6 +93,8 @@ void loop() {
       rf95.send(data, sizeof(data));
       rf95.waitPacketSent();
       Serial.println("Sent a reply");
+
+      delay(50);
       digitalWrite(LED_BUILTIN, LOW);
     } else {
       Serial.println("Receive failed");

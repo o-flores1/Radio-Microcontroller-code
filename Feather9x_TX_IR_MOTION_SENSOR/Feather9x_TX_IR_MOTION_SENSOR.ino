@@ -31,6 +31,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   Serial.begin(115200);
+  while(!Serial) delay (1);
   delay(100);
 
   Serial.println("Feather LoRa TX + STHS Test");
@@ -67,21 +68,30 @@ void setup() {
   // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
   // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
+
+  sths.setOutputDataRate(STHS34PF80_ODR_30_HZ);
 }
 
 
 int16_t packetnum = 0;  // packet counter, we increment per xmission
+bool isPresent = false;
 
 void loop() {
-  delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
-  Serial.println("Transmitting..."); // Send a message to rf95_server
+  //delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
+  //Serial.println("Transmitting..."); // Send a message to rf95_server
 
   int16_t presence = sths.readPresence();
-    if (presence > 400){
+    // Detects if there is someting in front of the sensor, and lights up when there is.
+    // This is meant to be here so that data is only sent when something is in front of it, once.
+    if (presence > 400 && !isPresent){
+      isPresent = true;
+
       Serial.print("Detected");
       Serial.println(presence);
 
       digitalWrite(LED_BUILTIN, HIGH);
+
+      Serial.println("Transmitting..."); // Send a message to rf95_server
 
       String radiopacket = "#";          
       radiopacket.concat(packetnum++);
@@ -92,36 +102,36 @@ void loop() {
       delay(10);
       rf95.send((uint8_t *)radiopacket.c_str(), radiopacket.length()+1);  
 
-      //Serial.println("Waiting for packet to complete...");
+      Serial.println("Waiting for packet to complete...");
       delay(10);
       rf95.waitPacketSent();
 
-      delay(500);
-      digitalWrite(LED_BUILTIN, LOW);
+       // Now wait for a reply
+      uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+      uint8_t len = sizeof(buf);
 
-    }
-  
-
-  Serial.println("Waiting for packet to complete...");
-  delay(10);
-  rf95.waitPacketSent();
-  // Now wait for a reply
-  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-  uint8_t len = sizeof(buf);
-
-  Serial.println("Waiting for reply...");
-  if (rf95.waitAvailableTimeout(1000)) {
-    // Should be a reply message for us now
-    if (rf95.recv(buf, &len)) {
+      Serial.println("Waiting for reply...");
+      if (rf95.waitAvailableTimeout(500)) {
+     // Should be a reply message for us now
+     if (rf95.recv(buf, &len)) {
       Serial.print("Got reply: ");
       Serial.println((char*)buf);
       Serial.print("RSSI: ");
       Serial.println(rf95.lastRssi(), DEC);
-    } else {
+     } else {
       Serial.println("Receive failed");
     }
   } else {
     Serial.println("No reply, is there a listener around?");
-  } 
+
+
+    } 
+    }
+    // Checks if isPresent is True, if so sets it to false and turns off light to indicate nothing in front of sensor.
+    else if ( presence < 350 && isPresent) {
+      isPresent = false;
+      digitalWrite(LED_BUILTIN, LOW);
+      Serial.print("Sensor clear");
+    }
 
 }

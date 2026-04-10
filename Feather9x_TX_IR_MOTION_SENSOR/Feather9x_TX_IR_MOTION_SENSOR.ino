@@ -17,7 +17,7 @@
   #define RFM95_INT  21
   #define RFM95_RST  17
  // Change to 434.0 or other frequency, must match RX's freq!
-#define RF95_FREQ 915.0
+  #define RF95_FREQ 915.0
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
@@ -31,7 +31,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   Serial.begin(115200);
-  while(!Serial) delay (1);
+  //while(!Serial) delay (1);
   delay(100);
 
   Serial.println("Feather LoRa TX + STHS Test");
@@ -83,11 +83,14 @@ void loop() {
   int16_t presence = sths.readPresence();
     // Detects if there is someting in front of the sensor, and lights up when there is.
     // This is meant to be here so that data is only sent when something is in front of it, once.
-    if (presence > 400 && !isPresent){
+    // Try and get distance from it.
+    if (presence > 2000 && !isPresent){
       isPresent = true;
 
+      /*
       Serial.print("Detected");
       Serial.println(presence);
+      */
 
       digitalWrite(LED_BUILTIN, HIGH);
 
@@ -95,6 +98,8 @@ void loop() {
 
       String radiopacket = "#";          
       radiopacket.concat(packetnum++);
+      radiopacket.concat(", Presence = ");
+      radiopacket.concat(presence);
       Serial.print("Sent: "); 
       Serial.println(radiopacket);
 
@@ -110,8 +115,8 @@ void loop() {
       uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
       uint8_t len = sizeof(buf);
 
-      Serial.println("Waiting for reply...");
-      if (rf95.waitAvailableTimeout(500)) {
+     /* Serial.println("Waiting for reply...");
+   if (rf95.waitAvailableTimeout(500)) {
      // Should be a reply message for us now
      if (rf95.recv(buf, &len)) {
       Serial.print("Got reply: ");
@@ -120,12 +125,13 @@ void loop() {
       Serial.println(rf95.lastRssi(), DEC);
      } else {
       Serial.println("Receive failed");
+      
     }
   } else {
     Serial.println("No reply, is there a listener around?");
-
-
     } 
+    */
+
     }
     // Checks if isPresent is True, if so sets it to false and turns off light to indicate nothing in front of sensor.
     else if ( presence < 350 && isPresent) {
@@ -133,5 +139,6 @@ void loop() {
       digitalWrite(LED_BUILTIN, LOW);
       Serial.print("Sensor clear");
     }
+    
 
 }

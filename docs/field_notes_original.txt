@@ -1,0 +1,34 @@
+Important Note: Payload struct within TX or RX must match accordingly or else won't work.
+
+Transmission holds two files:
+1. TX_v1, Transmitter code for a payload with only Micro SD card Writer and Accelerometer.
+2. TX_v2, a copy of v1, plus the addition of GPS module (Adafruit Mini GPS).
+
++. plus some other quick fix files made on the field.
+
+For the use of v1, such libraries are required:
+1. Adafruit's RadioHead Library
+2. Adafruit MMA8451 Library
+3. SD Library from Arduino, SparkFun
+
+For the use of v2, copy the same libraries as v1 with the addition of Adafruit GPS Library.
+
+Receiver holds two files: //note this is only for a receiver with an OLED screen and a Buzzer attached. Receivers in this instance are meant to be used as a way to track transmissions and gather transmission data into SD card (This needs fixing).
+1. RX_v1, Reciever code is meant to receive transmissions with specified parts and is linked to TX_v1.
+2. RX_v1, The same is true for RX_v2, requiring transmission payload have TX_v2.
+
+Libraries necessary for the use of both RX_v1 and RX_v2:
+1. Adafruit's RadioHead Library
+2. SD Library from Arduino, SparkFun
+3. Adafruit SSD1306
+4. Adafruit GFX
+
+
+Things to Fix / Add:
+ - Fix receiver code, as it is not saving "new" data to RX_VSD file, and also stops after a while.
+ - Add a way to manually send a packet to the transmitter from the receiver to add or start data writing to SD card. Might also want to consider having it be able to send a packet to stop the transmitter writing on the SD card.
+ - Make iterations of code for ever payload we have so when on the field if we need a quick code fix you can find the file easier.
+
+Overall might be worth considering turning the Receiver into a tiny command center to talk to transmitter for an easier way of recording data or what ever we want it to do.
+
+[Quick note for future uses. We might want to limit test the code and modules before taking out to the feild to avoid mass amounts of problems.]
